@@ -12,6 +12,8 @@ conn = sqlite3.connect('stalker_game.db')
 
 cursor = conn.cursor()
 
+## ХУЙ
+
 # ---- Создание таблицы с полями ----
 cursor.execute('''CREATE TABLE IF NOT EXISTS users_stats (
             id INTEGER PRIMARY KEY,
