@@ -12,8 +12,6 @@ conn = sqlite3.connect('stalker_game.db')
 
 cursor = conn.cursor()
 
-## ХУЙ
-
 # ---- Создание таблицы с полями ----
 cursor.execute('''CREATE TABLE IF NOT EXISTS users_stats (
             id INTEGER PRIMARY KEY,
@@ -41,7 +39,8 @@ async def close_database(*args):
 async def add_item(message: types.Message):
     user_id = message.from_user.id 
     args = message.get_args()
-    player_inventory.add_item(player_id=user_id, item_id=args, quantity=1)
+    result = player_inventory.add_item_up_quanity(player_id=user_id, item_id=args, quantity=1)
+    await message.answer(result)
 
 @dp.message_handler(commands=['inv'])        
 async def inventory_get(message: types.Message):
