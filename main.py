@@ -30,6 +30,8 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS inventory (
 
 player_inventory = PlayerInventory()
 
+## ХУЙХУЙХУЙХУХЙХУЙХУЙХУХЙУХЙУХЙХУЙХУХЙУХЙХуй
+
 conn.commit()
 async def close_database(*args):
     print('Закрытие бота и сохранение DB.')
