@@ -1,16 +1,10 @@
 import sqlite3
 from lib.items import items
-from lib.price import prices
 
 conn = sqlite3.connect('stalker_game.db')
 cursor = conn.cursor()
 
 class PlayerInventory:
-    def __init__(self, connection):
-         self.prices = prices
-         self.connection = connection
-         combined_items = {key: {'name': items[key], 'price': prices[key]} for key in prices}
-
     def add_item_up_quanity(self, player_id, item_id, quantity):
         result = ''
         cursor.execute('SELECT user_id FROM inventory WHERE (user_id = ? AND item_id = 0)', (player_id,))
@@ -73,24 +67,22 @@ class PlayerInventory:
         cursor.execute("SELECT item_id, quantity FROM inventory WHERE user_id = ?", (player_id,))
         inventory = cursor.fetchall()
         return inventory
-    
-
-   
-   
-
 
     def buy_item(self, player_id, item_id):
-        if item_id in self.prices:  # Проверяем, что предмет есть в словаре с ценами
-            item_cost = self.prices[item_id]
-            player_balance = self.get_player_money(player_id)  # Получаем баланс игрока
-            if player_balance >= item_cost:  # Проверяем достаточность средств у игрока
-                self.update_player_money(player_id, player_balance - item_cost)  # Обновляем баланс игрока
-                self.add_item_to_inventory(player_id, item_id)  # Добавляем предмет в инвентарь
-                return f'Вы купили предмет {item_id} за {item_cost}'
+        cursor.execute('SELECT money, item_id FROM user_stats, inventory(money = ? AND item_id=? AND user_id=?)', (player_id, item_id))
+        if item_id in items:  
+            cursor.execute('UPDATE money=?, item_id FROM user_stats, inventory WHERE(user_id=? AND money=? AND item_id=?)', (player_id, item_id))
+            item_cost = items[item_id]['price']  
+            player_balance = self.get_money(player_id)  
+            if player_balance >= item_cost:  
+                self.update_player_money(player_id, player_balance - item_cost)  
+                self.add_item_to_inventory(player_id, item_id)  
+                return f'Вы купили предмет {items[item_id]["name"]} за {item_cost}'
             else:
                 return 'Недостаточно средств для покупки'
         else:
             return 'Такого предмета нет в магазине'
+        
 
     def sell_item(self, player_id, item_id):
         inventory = self.get_inventory(player_id)
@@ -101,21 +93,27 @@ class PlayerInventory:
                 self.update_player_money(player_id, self.get_player_money(player_id) + item_cost)  # Увеличиваем баланс игрока
                 return f'Вы продали предмет {item_id} за {item_cost}'
         return 'У вас нет такого предмета в инвентаре'
-    
-    def add_money_to_player(self, player_id, money_amount):
-     cursor.execute('SELECT id, money FROM users_stats WHERE user_id = ?', (player_id,))
-     row = cursor.fetchone()
-    
-     if row:
-        temp_id = row[0]
-        current_money = row[1]
-        new_money = current_money + money_amount
-        cursor.execute('UPDATE users_stats SET money = ? WHERE id = ?', (new_money, temp_id))
-        self.connection.commit()  # Вызываем метод commit для подтверждения изменений
-        return new_money  # Возвращаем новый баланс после обновления
-     else:
-        return None
-        
+
+
+
+
+class user_wallet:
+    def add_money(self, user_id, money):
+        user_stats = money
+        money = self.add_money(user_id)
+        cursor.execute('SELECT money FROM user_stats WHERE (user_id=? AND money=?)', (user_id, money))
+        row = row.fetchall()
+        if row:
+             print(row[0][0])
+             print(row[0])
+             temp_id = row[0][0]
+             temp_quantity = 0
+             temp_quantity += row[0][1] + 1
+             cursor.execute("UPDATE money SET quantity = ? WHERE (user_id = ? AND money = ?)", (temp_quantity, temp_id, user_id, money))
+             print(f'Количество монет {[int(money)]} у игрока с ID {user_id} изменено')
+             result = f'Количество монет {[int(money)]} изменено.'
+        conn.commit()
+
         
     
  

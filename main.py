@@ -89,22 +89,24 @@ async def add_item(message: types.Message):
 @dp.message_handler(commands=['add_money'])
 async def add_money_to_player_handler(message: types.Message):
     user_id = message.from_user.id
-    args = message.get_args()
-    if args:
-        amount = int(args)  # Получаем сумму для добавления
-        result = player_inventory.add_money_to_player(user_id, amount)
-        if isinstance(result, int):  # Предположим, что метод возвращает целое число
-            await message.answer(f'Добавлено {amount} монет. Новый баланс: {result}')
-        else:
-            await message.answer('Произошла ошибка при добавлении денег')
+    money_a = int(message.get_args())  
+    cursor.execute("UPDATE users_stats SET money = money + ? WHERE user_id = ?", (money_a, user_id))
+    result = f"Добавлено {money_a} монет пользователю с ID {user_id}"
+    await message.answer(result)
+
+@dp.message_handler(commands=['show_money'])
+async def show_user_money_handler(message: types.Message):
+    user_id = message.from_user.id
+    cursor.execute("SELECT money FROM users_stats WHERE user_id = ?", (user_id,))
+    money_amount = cursor.fetchone()
+    if money_amount:
+        response_text = f"У вас {money_amount[0]} монет."
     else:
-        await message.answer('Укажите сумму для добавления')
-        
-conn = sqlite3.connect('stalker_game.db')
-cursor = conn.cursor()
-cursor.execute('SELECT * FROM users_stats')
-rows = cursor.fetchall()
-for row in rows:
-    print(row)
+        response_text = "К сожалению, не удалось получить информацию о количестве монет."
+    await message.answer(response_text)
+
+
+
+
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_shutdown=close_database)
