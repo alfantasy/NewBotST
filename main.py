@@ -30,8 +30,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS inventory (
 
 player_inventory = PlayerInventory()
 
-## ХУЙХУЙХУЙХУХЙХУЙХУЙХУХЙУХЙУХЙХУЙХУХЙУХЙХуй
-
 conn.commit()
 async def close_database(*args):
     print('Закрытие бота и сохранение DB.')
@@ -92,10 +90,16 @@ async def add_item(message: types.Message):
 async def add_money_to_player_handler(message: types.Message):
     user_id = message.from_user.id
     args = message.get_args()
-    amount = int(args)  # Получаем сумму для добавления
-    result = await player_inventory.add_money_to_player(user_id, amount)
-    await message.answer(f'Добавлено {amount} монет. Новый баланс: {result.money}')
-
+    if args:
+        amount = int(args)  # Получаем сумму для добавления
+        result = player_inventory.add_money_to_player(user_id, amount)
+        if isinstance(result, int):  # Предположим, что метод возвращает целое число
+            await message.answer(f'Добавлено {amount} монет. Новый баланс: {result}')
+        else:
+            await message.answer('Произошла ошибка при добавлении денег')
+    else:
+        await message.answer('Укажите сумму для добавления')
+        
 conn = sqlite3.connect('stalker_game.db')
 cursor = conn.cursor()
 cursor.execute('SELECT * FROM users_stats')

@@ -1,12 +1,16 @@
 import sqlite3
 from lib.items import items
-from lib.price import items
+from lib.price import prices
 
 conn = sqlite3.connect('stalker_game.db')
 cursor = conn.cursor()
 
 class PlayerInventory:
-    prices = {1: 1000, 2: 2000, 3: 3000, 4: 4000, 5: 5000, 6: 6000, 7: 7000, 8: 8000, 9: 9000, 10: 10000, 11: 11000, 12: 12000, 13: 13000, 14: 14000, 15: 15000, 16: 16000, 17: 17000, 18: 18000, 19: 19000, 20: 20000, 21: 21000, 22: 22000, 23: 23000, 24: 24000, 25: 25000, 26: 26000, 27: 27000}
+    def __init__(self, connection):
+         self.prices = prices
+         self.connection = connection
+         combined_items = {key: {'name': items[key], 'price': prices[key]} for key in prices}
+
     def add_item_up_quanity(self, player_id, item_id, quantity):
         result = ''
         cursor.execute('SELECT user_id FROM inventory WHERE (user_id = ? AND item_id = 0)', (player_id,))
@@ -55,10 +59,7 @@ class PlayerInventory:
             result = f'Указанного Вами предмета нет в Вашем инвентаре.'
         return result
 
-    async def add_money_to_player(self, player_id, amount):
-        player = await player.get(player_id)
-        player.money += amount
-        await player.save()
+
 
 
 
@@ -74,6 +75,7 @@ class PlayerInventory:
         return inventory
     
 
+   
    
 
 
@@ -99,3 +101,24 @@ class PlayerInventory:
                 self.update_player_money(player_id, self.get_player_money(player_id) + item_cost)  # Увеличиваем баланс игрока
                 return f'Вы продали предмет {item_id} за {item_cost}'
         return 'У вас нет такого предмета в инвентаре'
+    
+    def add_money_to_player(self, player_id, money_amount):
+     cursor.execute('SELECT id, money FROM users_stats WHERE user_id = ?', (player_id,))
+     row = cursor.fetchone()
+    
+     if row:
+        temp_id = row[0]
+        current_money = row[1]
+        new_money = current_money + money_amount
+        cursor.execute('UPDATE users_stats SET money = ? WHERE id = ?', (new_money, temp_id))
+        self.connection.commit()  # Вызываем метод commit для подтверждения изменений
+        return new_money  # Возвращаем новый баланс после обновления
+     else:
+        return None
+        
+        
+    
+ 
+            
+     
+   
